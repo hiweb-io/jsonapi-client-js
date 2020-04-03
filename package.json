@@ -1,10 +1,11 @@
 {
   "name": "jsonapi-client-js",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "jsonapi",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "babel src -d lib"
   },
   "repository": {
     "type": "git",
@@ -18,5 +19,15 @@
   "bugs": {
     "url": "https://github.com/hiweb-io/jsonapi-client-js/issues"
   },
-  "homepage": "https://github.com/hiweb-io/jsonapi-client-js#readme"
+  "homepage": "https://github.com/hiweb-io/jsonapi-client-js#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  }
 }
