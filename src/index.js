@@ -1,4 +1,4 @@
-import { JsonApi } from './jsonapi'
+import { JsonApi } from './JsonApi'
 
 module.exports = {
   JsonApi

@@ -1,45 +1,108 @@
 export class Resource {
-  constructor(data, included) {
+
+  constructor(data, jsonapi) {
     this.data = data;
-    this.included = included;
+    this.jsonapi = jsonapi;
   }
 
+  /**
+  * Get resource id
+  *
+  * @return string
+  */
   getId() {
     return this.data.id;
   }
 
+  /**
+  * Get resource type
+  *
+  * @return string
+  */
   getType() {
     return this.data.type;
   }
 
-  getAttribute(attributeName) {
+  /**
+  * Get resource attribute value
+  *
+  * @param string Attribute name
+  * @param mixed Default value - in case attribute not found
+  * @return mixed|null
+  */
+  getAttribute(attributeName, defaultValue) {
+  
     if (this.data.attributes.hasOwnProperty(attributeName)) {
       return this.data.attributes[attributeName];
     }
-    return new Error(`${attributeName} not found!`);
+
+    return defaultValue || null;
+  
   }
 
+  /**
+  * Get attributes
+  *
+  * @return array
+  */
   getAttributes() {
     return this.data.attributes;
   }
 
+  /**
+  * Get relationship data
+  *
+  * @param string Relationship key
+  * @return Resource|array
+  */
   getRelationshipData(relationshipKey) {
+
+    // Return null in case of no relationship found
     if (!this.data.relationships.hasOwnProperty(relationshipKey)) {
-      return new Error(`${relationshipKey} not found!`);
+      return null;
     }
 
+    // Relationship
     const relationshipData = this.data.relationships[relationshipKey].data;
 
+    // If relationship is to-many
     if (Array.isArray(relationshipData)) {
-      return this.included.filter(el => {
-        return relationshipData.some(
-          tmp => el.type === tmp.type && el.id === tmp.id
-        );
+      
+      // Get ids and type
+      let type = null;
+      let ids = relationshipData.map(relationship => {
+
+        // Set type
+        if (!type) {
+          type = relationship.type;
+        }
+
+        return relationship.id;
+
       });
+
+      // Make a query
+      return this.jsonapi.findResources([
+        
+        // First query is type
+        [
+          'type',
+          type
+        ],
+
+        // Second query is finding by ids
+        [
+          'id',
+          'IN',
+          ids
+        ]
+
+      ]);
+
     }
 
-    return this.included.find(
-      el => el.type === relationshipData.type && el.id === relationshipData.id
-    );
+    // Find resource
+    return this.jsonapi.findResource(relationshipData.type, relationshipData.id);
+
   }
 }
