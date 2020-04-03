@@ -4,6 +4,7 @@
 
 `npm i jsonapi-client-js`
 
+# Simple usage
 ```
   import { JsonApi } from 'jsonapi-client-js'
 
