@@ -1,0 +1,22 @@
+{
+  "name": "jsonapi-client-js",
+  "version": "1.0.0",
+  "description": "jsonapi",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiweb-io/jsonapi-client-js.git"
+  },
+  "keywords": [
+    "jsonapi"
+  ],
+  "author": "manh-dinh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hiweb-io/jsonapi-client-js/issues"
+  },
+  "homepage": "https://github.com/hiweb-io/jsonapi-client-js#readme"
+}
