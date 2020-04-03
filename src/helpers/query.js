@@ -49,8 +49,8 @@ class Query {
 	*/
 	compare(operator, value1, value2, precision) {
 
-		// Preparation for '=' operator
-		if (operator !== '=' && !precision) {
+		// Preparation for '> < >= <=' operator
+		if (['>', '>', '>=', '<='].indexOf(operator) > -1 && !precision) {
 
 			precision = 2;
 			let multiplier = 1;
