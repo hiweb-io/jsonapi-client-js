@@ -147,6 +147,12 @@ export class Resource {
    * @return void
    */
   setRelationship(key, value) {
+
+    // check key or value is null
+    if(!key || !value) {
+      return;
+    }
+
     // array imageResources
     if (Array.isArray(value)) {
       this.data.relationships[key].data = [];
@@ -158,17 +164,23 @@ export class Resource {
       return;
     }
 
-    // imageResource
-    if (!value.data) {
-      this.data.relationships[key].data = value
+    // value is a object
+    if (!Array.isArray(value)) {
+      
+      // relationshipObject has one resource object or has array of resource object
+      if (value.hasOwnProperty(key)) {
+        this.data.relationships[key].data = value[key].data;
+        return;
+      }
 
-      return;
-    }
+      // Resource Linkage object
+      if (value.hasOwnProperty('type') && value.hasOwnProperty('id')) {
+        this.data.relationships[key].data = value;
+        return;
+      }
 
-    // relationshipObject
-    if (value.data) {
-      this.data.relationships[key] = value
-
+      // One Resource object
+      this.data.relationships[key].data = value;
       return;
     }
   }

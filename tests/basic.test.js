@@ -31,8 +31,8 @@ const exampleJsonApiData = JSON.stringify({
 	},
 	included: [
 		{
-			type: 'images',
-			id: '1',
+			type: 'images1',
+			id: '2',
 			attributes: {
 				alt: 'Example image',
 				src: 'http://example.com/image.jpg'
@@ -62,16 +62,41 @@ test('Test parse and find relationship data', () => {
 	let jsonapi = new JsonApi(exampleJsonApiData);
 
 	// Get primary resource
-	let product = jsonapi.getData();
+  let product = jsonapi.getData();
 	expect(product.getType()).toBe('products');
 	expect(product.getId()).toBe('1');
 	expect(product.getAttribute('title')).toBe('Example product title');
 
+  // Set Relationship by one relationships object 
+  const imageRequest = 
+  {
+    variants: {
+      data: [
+         {
+          type: 'variants',
+          id: '1'
+        },
+        {
+          type: 'variants',
+          id: '2'
+        }
+      ]
+    },
+    image: {
+      data: {
+        type: 'images1',
+        id: '2'
+      }
+    }
+  }
+ 
+  product.setRelationship('image', imageRequest);
+  
 	// Get product relationship resource
-	let image = product.getRelationshipData('image');
-	expect(image.getType()).toBe('images');
-	expect(image.getId()).toBe('1');
-	expect(image.getAttribute('src')).toBe('http://example.com/image.jpg');
+  let image = product.getRelationshipData('image');
+  expect(image.getId()).toBe('2');
+  expect(image.getType()).toBe('images1');
+  expect(image.getAttribute('src')).toBe('http://example.com/image.jpg');
 
 });
 

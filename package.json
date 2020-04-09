@@ -5,8 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "jest",
-    "prepublish": "babel src -d lib",
-    "test_json": "jest"
+    "prepublish": "babel src -d lib"
   },
   "repository": {
     "type": "git",
