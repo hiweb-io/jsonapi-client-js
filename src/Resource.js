@@ -1,4 +1,5 @@
 export class Resource {
+
   constructor(data, jsonapi) {
     this.data = {};
 
@@ -98,6 +99,7 @@ export class Resource {
    * @return Resource|array
    */
   getRelationshipData(relationshipKey) {
+
     // Return null in case of no relationship found
     if (!this.data.relationships.hasOwnProperty(relationshipKey)) {
       return null;
@@ -127,6 +129,7 @@ export class Resource {
         // Second query is finding by ids
         ["id", "IN", ids]
       ]);
+
     }
 
     // Find resource

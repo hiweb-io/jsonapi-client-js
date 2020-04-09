@@ -6,6 +6,7 @@ export class JsonApi {
    * @param string
    */
   constructor(jsonapi) {
+
     // Parse from string
     let data = JSON.parse(jsonapi);
 
@@ -15,10 +16,10 @@ export class JsonApi {
     // Resource container
     this.resourceContainer = [];
 
-    // Map resources to resource objects
+    // Map primary resources to resource objects
     if (Array.isArray(data.data)) {
-      // Data is array
 
+      // Data is array
       this.jsonapi.data = [];
 
       data.data.forEach(resourceData => {
@@ -31,12 +32,37 @@ export class JsonApi {
         // Push to resource container
         this.resourceContainer.push(resource);
       });
+
     } else {
+
       // Data is object
       let resource = this.makeResource(data.data);
       this.jsonapi.data = resource;
       this.resourceContainer.push(resource);
+
     }
+
+    // Map included resources
+    if (data.hasOwnProperty('included') && Array.isArray(data.included) && data.included.length) {
+
+      this.jsonapi.included = [];
+
+      // Mapping
+      data.included.forEach(resourceData => {
+
+        // Create resource object
+        let resource = this.makeResource(resourceData);
+
+        // Map to included
+        this.jsonapi.included.push(resource);
+
+        // Push to resource container
+        this.resourceContainer.push(resource);
+
+      });
+
+    }
+
   }
 
   /**
@@ -68,7 +94,7 @@ export class JsonApi {
    * @return Resource
    */
   makeResource(data) {
-    return new Resource(data, this.jsonapi);
+    return new Resource(data, this);
   }
 
   /**
@@ -82,7 +108,7 @@ export class JsonApi {
     // Find in resource container
     return (
       this.resourceContainer.find(resource => {
-        return resource.type === type && resource.id === id;
+        return resource.getType() === type && resource.getId() === id;
       }) || null
     );
   }
@@ -114,8 +140,8 @@ export class JsonApi {
       }
 
       // Is multi-queries. Check all
-      return queryData.find(query => {
-        return !query.checkResource(query, resource);
+      return queryData.find(_queryData => {
+        return !query.checkResource(_queryData, resource);
       })
         ? false
         : true;

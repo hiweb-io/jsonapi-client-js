@@ -1,4 +1,5 @@
 class Query {
+  
   /**
    * Check resource match query data
    *
@@ -24,10 +25,10 @@ class Query {
 
     // Query field is attribute
     if (["id", "type"].indexOf(query[0]) === -1) {
-      return this.compare(operator, resource.attributes[field], value);
+      return this.compare(operator, resource.getAttribute(field), value);
     } else {
       // Query field is id or type
-      return this.compare(operator, resource[field], value);
+      return this.compare(operator, query[0] === 'id' ? resource.getId() : resource.getType(), value);
     }
   }
 
