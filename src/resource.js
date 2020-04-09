@@ -22,7 +22,7 @@ export class Resource {
   /**
    * Set resource id
    * @param string resource id
-   * @return
+   * @return void
    */
   setId(id) {
     this.data.id = id;
@@ -40,7 +40,7 @@ export class Resource {
   /**
    * Set resource type
    * @param string resource id
-   * @return
+   * @return void
    */
   setType(type) {
     this.data.type = type;
@@ -66,7 +66,7 @@ export class Resource {
    *
    * @param string Attribute name
    * @param object Attribute value
-   * @return
+   * @return void
    */
   setAttribute(attributeName, attributeValue) {
     this.data.attributes[attributeName] = attributeValue;
@@ -85,7 +85,7 @@ export class Resource {
    * Set resource attributes value
    *
    * @param object Attributes value
-   * @return
+   * @return void
    */
   setAttributes(attributes) {
     this.data.attributes = attributes;
@@ -141,9 +141,32 @@ export class Resource {
    *
    * @param string Relationship key
    * @param Object Relationship value
-   * @return
+   * @return void
    */
-  setRelationshipData(key, value) {
-    this.data.relationships[key] = value;
+  setRelationship(key, value) {
+    // array imageResources
+    if (Array.isArray(value)) {
+      this.data.relationships[key].data = [];
+
+      value.forEach(imgResource => {
+        this.data.relationships[key].data.push(imgResource)
+      })
+
+      return;
+    }
+
+    // imageResource
+    if (!value.data) {
+      this.data.relationships[key].data = value
+
+      return;
+    }
+
+    // relationshipObject
+    if (value.data) {
+      this.data.relationships[key] = value
+
+      return;
+    }
   }
 }
