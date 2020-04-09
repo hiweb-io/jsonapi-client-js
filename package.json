@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "babel src -d lib"
+    "prepublish": "babel src -d lib",
+    "test_json": "jest"
   },
   "repository": {
     "type": "git",
@@ -23,7 +24,8 @@
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.0",
-    "@babel/preset-env": "^7.9.0"
+    "@babel/preset-env": "^7.9.0",
+    "jest": "^25.3.0"
   },
   "babel": {
     "presets": [
