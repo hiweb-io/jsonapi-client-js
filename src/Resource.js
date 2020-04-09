@@ -151,14 +151,13 @@ export class Resource {
     // check key or value is null
     if(!key || !value) {
       return;
-    }
+    }    
 
     // array imageResources
     if (Array.isArray(value)) {
       this.data.relationships[key].data = [];
-
       value.forEach(imgResource => {
-        this.data.relationships[key].data.push(imgResource)
+        this.data.relationshipskey.data.push(imgResource)
       })
 
       return;
@@ -167,20 +166,20 @@ export class Resource {
     // value is a object
     if (!Array.isArray(value)) {
       
-      // relationshipObject has one resource object or has array of resource object
+      // Relationship Object
       if (value.hasOwnProperty(key)) {
-        this.data.relationships[key].data = value[key].data;
+        this.data.relationships.key.data = value[key].data;
         return;
       }
 
       // Resource Linkage object
       if (value.hasOwnProperty('type') && value.hasOwnProperty('id')) {
-        this.data.relationships[key].data = value;
+        this.data.relationships.key.data = value;
         return;
       }
 
       // One Resource object
-      this.data.relationships[key].data = value;
+      this.data.relationships.key.data = value;
       return;
     }
   }
