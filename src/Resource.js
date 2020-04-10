@@ -153,11 +153,11 @@ export class Resource {
       return;
     }    
 
-    // array imageResources
+    // Array Resources
     if (Array.isArray(value)) {
       this.data.relationships[key].data = [];
-      value.forEach(imgResource => {
-        this.data.relationshipskey.data.push(imgResource)
+      value.forEach(arrResource => {
+        this.data.relationshipskey.data.push(arrResource)
       })
 
       return;
