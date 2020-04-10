@@ -70,6 +70,11 @@ export class Resource {
    * @return void
    */
   setAttribute(attributeName, attributeValue) {
+
+    if (typeof this.data.attributes !== 'object') {
+      this.data.attributes = {};
+    }
+
     this.data.attributes[attributeName] = attributeValue;
   }
 
@@ -140,6 +145,32 @@ export class Resource {
   }
 
   /**
+  * Get relationships
+  *
+  * @param void
+  * @return object Relationships object
+  */
+  getRelationships() {
+    return this.data.relationships;
+  }
+
+  /**
+  * Get relationship
+  *
+  * @param string
+  * @return object|null Relationship object
+  */
+  getRelationship(key) {
+
+    if (typeof this.data.relationships === 'object' && typeof this.data.relationships[key] !== 'undefined') {
+      return this.data.relationships[key];
+    }
+    
+    return null;
+
+  }
+
+  /**
    * Set relationship data
    *
    * @param string Relationship key
@@ -151,36 +182,140 @@ export class Resource {
     // check key or value is null
     if(!key || !value) {
       return;
-    }    
+    }
 
-    // Array Resources
-    if (Array.isArray(value)) {
+    // Relationship data array handler
+    const makeRelationshipArrayData = relationshipData => {
+
       this.data.relationships[key].data = [];
-      value.forEach(arrResource => {
-        this.data.relationshipskey.data.push(arrResource)
-      })
 
+      relationshipData.forEach(resource => {
+
+        // If resource is an instance of Resource class
+        if (resource instanceof Resource) {
+          
+          // Push resource linkage object to relationship data
+          this.data.relationships[key].data.push({
+            id: resource.getId(),
+            type: resource.getType()
+          });
+          return;
+
+        }
+
+        // If resource is a valid resource-linkage
+        if (typeof resource === 'object' && typeof resource.id === 'string' && typeof resource.type === 'string') {
+
+          // Push resource linkage object to relationship data
+          this.data.relationships[key].data.push({
+            id: resource.id,
+            type: resource.type
+          });
+          return;
+
+        }
+
+      });
+
+    };
+
+    // Value is array
+    if (Array.isArray(value)) {
+      makeRelationshipArrayData(value);
       return;
     }
 
-    // value is a object
-    if (!Array.isArray(value)) {
+    // Value is a object
+    if (typeof value === 'object') {
       
-      // Relationship Object
-      if (value.hasOwnProperty(key)) {
-        this.data.relationships.key.data = value[key].data;
+      // If value is a Resource
+      if (value instanceof Resource) {
+        
+        // Set resource linkage object to relationship data
+        this.data.relationships[key].data = {
+          id: value.getId(),
+          type: value.getType()
+        };
+        return;
+
+      }
+
+      // Value is a resource-linkage
+      if (typeof value.id === 'string' && typeof value.type === 'string') {
+
+        // Set resource linkage object to relationship data
+        this.data.relationships[key].data = {
+          id: value.id,
+          type: value.type
+        };
+        return;
+
+      }
+
+      // Value isn't a resource nor resource-linkage
+      // Check if value is a valid relationship object
+      let validKeys = ['data', 'links', 'meta'];
+      for (let relationshipObjectKey in value) {
+
+        // Key isn't valid
+        if (validKeys.indexOf(relationshipObjectKey) === -1) {
+          console.log('Member ' + relationshipObjectKey + ' is not allowed');
+          return;
+        }
+      }
+
+      // Skip if relationship data is not set
+      if (typeof value.data === 'undefined') {
+        console.log('Cannot set relationship. Missing relationship data.')
         return;
       }
 
-      // Resource Linkage object
-      if (value.hasOwnProperty('type') && value.hasOwnProperty('id')) {
-        this.data.relationships.key.data = value;
+      // If relationship data is an array
+      if (Array.isArray(value.data)) {
+
+        makeRelationshipArrayData(value.data);
+
+      // If relationship data is a resource
+      } else if (value.data instanceof Resource) {
+        
+        // Set resource linkage object to relationship data
+        this.data.relationships[key].data = {
+          id: value.data.getId(),
+          type: value.data.getType()
+        };
+
+      // If relationship data is an object - Then it must be a valid resource linkage object
+      } else if (typeof value.data.id === 'string' && typeof value.data.type === 'string') {
+
+        // Set resource linkage object to relationship data
+        this.data.relationships[key].data = {
+          id: value.data.id,
+          type: value.data.type
+        };
+
+      // Unknown data format
+      } else {
+
+        // Return
+        console.log('Failed to set relationship data. Invalid relationship data format.');
         return;
+
       }
 
-      // One Resource object
-      this.data.relationships.key.data = value;
-      return;
+      // Set relationship links if present
+      if (typeof value.links !== 'undefined') {
+
+        // ... need validation here
+        this.data.relationships[key].links = value.links;
+      }
+
+      // Set relationship meta if present
+      if (typeof value.meta !== 'undefined') {
+
+        // ... need validation here
+        this.data.relationships[key].meta = value.meta;
+      }
+
     }
   }
 }
