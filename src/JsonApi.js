@@ -1,20 +1,29 @@
-import { Resource } from "./Resource";
+import Resource from "./Resource";
 import query from "./helpers/query";
 
-export class JsonApi {
+export default class JsonApi {
   /**
    * @param string
    */
   constructor(jsonapi) {
-
-    // Parse from string
-    let data = JSON.parse(jsonapi);
 
     // Document object
     this.jsonapi = {};
 
     // Resource container
     this.resourceContainer = [];
+
+    let data = null;
+
+    // No input
+    if (!jsonapi) {
+      return;
+    } else if (typeof jsonapi === 'string') {
+      // Parse from string
+      data = JSON.parse(jsonapi);
+    } else {
+      data = jsonapi;
+    }    
 
     // Map primary resources to resource objects
     if (Array.isArray(data.data)) {
@@ -63,6 +72,87 @@ export class JsonApi {
 
     }
 
+    // If errors
+    if (typeof data.errors !== 'undefined') {
+      this.jsonapi.errors = data.errors;
+    }
+
+    // If meta
+    if (typeof data.meta === 'object') {
+      this.jsonapi.meta = data.meta;
+    }
+
+    // If links
+    if (typeof data.links === 'object') {
+      this.jsonapi.links = data.links;
+    }
+
+    // Cache
+    this.cache = {};
+  }
+
+  /**
+  * Compile
+  *
+  * @return object
+  */
+  compile() {
+
+    let data = {};
+
+    // Data
+    if (Array.isArray(this.jsonapi.data)) {
+
+      // Document data is array
+      data.data = [];
+
+      // Compile resources
+      this.jsonapi.data.forEach(resource => {
+        data.data.push(resource.compile());
+      });
+
+    } else {
+      data.data = this.jsonapi.data.compile();
+    }
+
+    // Included
+    if (Array.isArray(this.jsonapi.included)) {
+
+      // Compile included data
+      data.included = [];
+
+      this.jsonapi.included.forEach(resource => {
+        data.included.push(resource.compile());
+      });
+
+    }
+
+    // Errors
+    if (this.getErrors()) {
+      data.errors = this.getErrors();
+    }
+
+    // Meta
+    if (this.getMeta()) {
+      data.meta = this.getMeta();
+    }
+
+    // Links
+    if (this.getLinks()) {
+      data.links = this.getLinks();
+    }
+
+    return data;
+
+  }
+
+  /**
+  * To JSON
+  *
+  * @return string
+  */
+  toJson() {
+    return JSON.stringify(this.compile());
   }
 
   /**
@@ -77,7 +167,71 @@ export class JsonApi {
    * @param object primary data
    */
   setData(data) {
-    this.jsonapi.data = data;
+
+    if (data instanceof Resource) {
+      
+      this.jsonapi.data = data;
+      this.pushToResourceContainer(data);
+
+    } else if (Array.isArray(data)) {
+
+      this.jsonapi.data = data.filter(resource => {
+        
+        if (resource instanceof Resource) {
+          this.pushToResourceContainer(resource);
+          return true;
+        }
+
+        return false;
+
+      });
+
+    }
+
+  }
+
+  /**
+  * Set included data
+  *
+  * @param array
+  */
+  setIncluded(data) {
+
+    if (data instanceof Resource) {
+      
+      this.jsonapi.included = [data];
+      this.pushToResourceContainer(data);
+
+    } else if (Array.isArray(data)) {
+
+      this.jsonapi.included = data.filter(resource => {
+        
+        if (resource instanceof Resource) {
+          this.pushToResourceContainer(resource);
+          return true;
+        }
+
+        return false;
+
+      });
+
+    }
+
+  }
+
+  /**
+  * Push resource to resource container
+  *
+  * @param Resource
+  */
+  pushToResourceContainer(resource) {
+
+    if (!this.resourceContainer.find(resource => {
+      return resource.getId() === resource.getId()
+    })) {
+      this.resourceContainer.push(resource);
+    }
+
   }
 
   /**
@@ -85,6 +239,27 @@ export class JsonApi {
    */
   getIncluded() {
     return this.jsonapi.included;
+  }
+
+  /**
+  * Get errors
+  */
+  getErrors() {
+    return this.jsonapi.errors;
+  }
+
+  /**
+  * Get meta
+  */
+  getMeta() {
+    return this.jsonapi.meta;
+  }
+
+  /**
+  * Get links
+  */
+  getLinks() {
+    return this.jsonapi.links;
   }
 
   /**
@@ -121,6 +296,12 @@ export class JsonApi {
    * @return array
    */
   findResources(queryData) {
+
+    // Cache found
+    if (typeof this.cache[JSON.stringify(queryData)] !== 'undefined') {
+      return this.cache[JSON.stringify(queryData)];
+    }
+
     // No query data - return all resources
     if (!queryData) {
       return this.resourceContainer;
@@ -133,7 +314,7 @@ export class JsonApi {
     }
 
     // Find in resource container
-    return this.resourceContainer.filter(resource => {
+    let resources = this.resourceContainer.filter(resource => {
       // If query data is a single query
       if (typeof queryData[0] === "string") {
         return query.checkResource(queryData, resource);
@@ -146,5 +327,10 @@ export class JsonApi {
         ? false
         : true;
     });
+
+    // Save to cache
+    this.cache[JSON.stringify(queryData)] = resources;
+
+    return resources;
   }
 }

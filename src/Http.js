@@ -1,73 +1,280 @@
 import axios from "axios";
-import { JsonApi } from './JsonApi'
+import JsonApi from './JsonApi'
 
-const requestHandler = (request) => {
-  request.headers['Content-Type'] = 'application/vnd.api+json'
-};
+class Http {
 
-const successHandler = response => {
-  return new JsonApi(response);
-};
-
-const errorHandler = (error) => {
-  console.log(error);
-  return Promise.reject(error);
-};
-
-export class Http {
   /**
-   * @param string
-   */
-  constructor(apiBaseUrl) {
-    this.axios = axios.create({
-      baseURL: apiBaseUrl,
-      responseType: "json",
-    });
+  * The constructor
+  *
+  * @param string Base API endpoint
+  */
+  constructor(baseUrl) {
 
-    //Enable request interceptor
-    this.axios.interceptors.request.use(
-      (request) => requestHandler(request),
-      (error) => errorHandler(error)
-    );
+    // Url
+    this.url = baseUrl;
 
-    //Response and Error handler
-    this.axios.interceptors.response.use(
-      (response) => successHandler(response),
-      (error) => errorHandler(error)
-    );
+    // Headers
+    this.headers = {};
+
+    // Default request options
+    this.options = {
+      responseType: 'json',
+      baseURL: this.url
+    };
   }
 
   /**
-   * Get Http Request
-   * @param string endpoint
-   * @param object query params
-   * @param object options
-   */
-  get(action, params, options) {
-    return new Promise((resolve, reject) => {
-      this.axios
-        .request(action, {
-          method: "GET",
-          params,
-          ...options,
-        })
-        .then((response) => {
-          if (response.data) {
-            resolve(response.data);
-          } else {
-            reject(response);
+  * Set headers
+  *
+  * @param object
+  * @return this
+  */
+  setHeaders(headers) {
+
+    if (typeof headers === 'object') {
+      this.headers = headers;
+    }
+
+    return this;
+  }
+
+  /**
+  * Make request options
+  *
+  * @param object
+  * @return object
+  */
+  makeRequestOptions(options) {
+
+    // Request options
+    let requestOptions = JSON.parse(JSON.stringify(this.options));
+    requestOptions.headers = this.headers;
+
+    if (typeof options === 'object') {
+
+      for (let optionKey in options) {
+
+        // Merge header
+        if (typeof optionKey === 'headers') {
+
+          for (let headerName in options.headers) {
+            requestOptions.headers[headerName] = options.headers[headerName];
           }
-        })
-        .catch((error) => {
-          if (
-            error.response &&
-            error.response.data &&
-            error.response.data.error
-          ) {
-            console.error("REST request error!", error.response.data.error);
-            reject(error.response.data.error);
-          } else reject(error);
-        });
+          continue;
+        }
+
+        // Set option
+        requestOptions[optionKey] = options[optionKey];
+
+      }
+
+    }
+
+    return requestOptions;
+  }
+
+  /**
+  * Send custom request
+  *
+  * @param object Options
+  * @return Promise
+  */
+  request(path, options) {
+
+    // Return a promise
+    return new Promise((resolve, reject) => {
+
+      // Request options
+      let requestOptions = this.makeRequestOptions(options);
+      requestOptions.url = requestOptions.baseURL + path;
+
+      // Send request with axios
+      axios(requestOptions).then(response => {
+
+        // Return a document
+        return resolve(new JsonApi(response.data));
+
+      }).catch(e => {
+        return reject(e);
+      });
+
+    });
+
+  }
+
+  /**
+  * Find a single resource
+  *
+  * @param string Resource type
+  * @param string Resource id
+  * @param object Options
+  * @return Promise
+  */
+  find(resourceType, resourceId, options) {
+
+    // Return a promise
+    return new Promise((resolve, reject) => {
+
+      // Request options
+      let requestOptions = this.makeRequestOptions(options);
+
+      // Send request with axios
+      axios.get(resourceType + '/' + resourceId, requestOptions).then(response => {
+
+        // Return a document
+        return resolve(new JsonApi(response.data));
+
+      }).catch(e => {
+        return reject(e);
+      });
+
+    });
+
+  }
+
+  /**
+  * Get a collection of resources
+  *
+  * @param string
+  * @param object Options
+  * @return Promise
+  */
+  collection(resourceType, options) {
+
+    // Return a promise
+    return new Promise((resolve, reject) => {
+
+      // Request options
+      let requestOptions = this.makeRequestOptions(options);
+
+      // Send request with axios
+      axios.get(resourceType, requestOptions).then(response => {
+
+        // Return a document
+        return resolve(new JsonApi(response.data));
+
+      }).catch(e => {
+        return reject(e);
+      });
+
     });
   }
+
+  /**
+  * Create a resource
+  *
+  * @param JsonApi JsonApi document object
+  * @param object Options
+  * @return Promise
+  */
+  create(jsonapiDocument, options) {
+
+    // Return a promise
+    return new Promise((resolve, reject) => {
+
+      // Request options
+      let requestOptions = this.makeRequestOptions(options);
+
+      // Request instance
+      let instance = axios.create(requestOptions);
+
+      // Send request with axios
+      instance.post(jsonapiDocument.getData().getType(), jsonapiDocument.compile()).then(response => {
+
+        // Return a document
+        return resolve(new JsonApi(response.data));
+
+      }).catch(e => {
+        return reject(e);
+      });
+
+    });
+
+  }
+
+  /**
+  * Update a resource
+  *
+  * @param JsonApi JsonApi document object
+  * @param object Options
+  * @return Promise
+  */
+  update(jsonapiDocument, options) {
+
+    // Return a promise
+    return new Promise((resolve, reject) => {
+
+      // Request options
+      let requestOptions = this.makeRequestOptions(options);
+
+      // Request instance
+      let instance = axios.create(requestOptions);
+
+      // Resource object
+      let resource = jsonapiDocument.getData();
+
+      // Send request with axios
+      instance.patch(resource.getType() + '/' + resource.getId(), jsonapiDocument.compile()).then(response => {
+
+        // Return a document
+        return resolve(new JsonApi(response.data));
+
+      }).catch(e => {
+        return reject(e);
+      });
+
+    });
+
+  }
+
+  /**
+  * Save a resource - shortcut to create() and update()
+  *
+  * @param JsonApi JsonApi document object
+  * @param object Options
+  * @return Promise
+  */
+  save(jsonapiDocument, options) {
+
+    // Update if has id
+    if (jsonapiDocument.getData().getId()) {
+      return this.update(jsonapiDocument, options);
+    }
+
+    // Create if no id
+    return this.create(jsonapiDocument, options);
+  }
+
+  /**
+  * Detele a resource
+  *
+  * @param string Resource type
+  * @param string Resource ID
+  * @param object Request options
+  * @return Promise
+  */
+  delete(resourceType, resourceId, options) {
+
+    // Return a promise
+    return new Promise((resolve, reject) => {
+
+      // Request options
+      let requestOptions = this.makeRequestOptions(options);
+
+      // Send request with axios
+      axios.delete(resourceType + '/' + resourceId, requestOptions).then(response => {
+
+        // Return a document
+        return resolve(new JsonApi(response.data));
+
+      }).catch(e => {
+        return reject(e);
+      });
+
+    });
+
+  }
+
 }
+
+export default Http;

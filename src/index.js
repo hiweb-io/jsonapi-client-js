@@ -1,7 +1,2 @@
-import { JsonApi } from './JsonApi'
-import { Http } from './Http'
-
-module.exports = {
-  JsonApi,
-  Http
-}
+export { default as JsonApi } from './JsonApi'
+export { default as Http } from './Http';

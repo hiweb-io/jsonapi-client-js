@@ -1,4 +1,4 @@
-import { JsonApi } from '../src/JsonApi';
+import JsonApi from '../src/JsonApi';
 
 const exampleJsonApiData = JSON.stringify({
   data: {
@@ -67,7 +67,7 @@ test('Test parse and find relationship data', () => {
   expect(product.getId()).toBe('1');
   expect(product.getAttribute('title')).toBe('Example product title');
   
-  // Get product relationship resource
+  // // Get product relationship resource
   let image = product.getRelationshipData('image');
   expect(image.getId()).toBe('1');
   expect(image.getType()).toBe('images');
