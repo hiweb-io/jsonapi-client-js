@@ -1,6 +1,6 @@
 {
   "name": "jsonapi-client-js",
-  "version": "1.0.5",
+  "version": "1.1.0-dev",
   "description": "jsonapi",
   "main": "src/index.js",
   "scripts": {
