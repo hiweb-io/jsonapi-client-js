@@ -204,8 +204,13 @@ export default class JsonApi {
 
     } else if (Array.isArray(data)) {
 
-      this.jsonapi.included = data.filter(resource => {
+      this.jsonapi.included = data.filter((resource, index) => {
         
+        // Remove duplicate
+        if (index !== data.indexOf(resource)) {
+          return false;
+        }
+
         if (resource instanceof Resource) {
           this.pushToResourceContainer(resource);
           return true;
@@ -226,8 +231,8 @@ export default class JsonApi {
   */
   pushToResourceContainer(resource) {
 
-    if (!this.resourceContainer.find(resource => {
-      return resource.getId() === resource.getId()
+    if (!this.resourceContainer.find(r => {
+      return r.getId() === resource.getId()
     })) {
       this.resourceContainer.push(resource);
     }
