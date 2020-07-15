@@ -8,6 +8,11 @@ export default class Resource {
 
     this.data = {};
 
+    // If resource input is an Resource instance
+    if (resource && resource.isResource) {
+      resource = resource.compile();
+    }
+
     // check data is valid
     if (typeof resource === 'object' && typeof resource.id === 'string' && typeof resource.type === 'string') {
       
@@ -25,7 +30,7 @@ export default class Resource {
         this.data.relationships = new Relationships(this.data.relationships, this);
       }
 
-    } 
+    }
 
     // Parent document object
     this.jsonapi = jsonapi;

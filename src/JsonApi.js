@@ -2,6 +2,7 @@ import Resource from "./Resource";
 import query from "./helpers/query";
 
 export default class JsonApi {
+
   /**
    * @param string
    */
@@ -220,6 +221,39 @@ export default class JsonApi {
 
       });
 
+    }
+
+  }
+
+  /**
+  * Add included data
+  *
+  * @param Array|Resource
+  */
+  addIncluded(data) {
+
+    if (!Array.isArray(this.jsonapi.included)) {
+      this.jsonapi.included = [];
+    }
+
+    if (data instanceof Resource) {
+      this.jsonapi.included.push(data);
+      this.pushToResourceContainer(data);
+    } else if (Array.isArray(data)) {
+
+      data.forEach((resource, index) => {
+
+        // Skip if exists
+        if (this.jsonapi.included.indexOf(resource) > -1) {
+          return;
+        }
+
+        if (resource instanceof Resource) {
+          this.jsonapi.included.push(resource);
+          this.pushToResourceContainer(resource);
+        }
+
+      });
     }
 
   }
